@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://mini-social-media-app-backend-h1dhdvcqp.vercel.app/';
 
 function getToken() {
   return localStorage.getItem('token');
