@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - MiniSocial</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if (!localStorage.getItem('token') || !JSON.parse(localStorage.getItem('user') || '{}')._id) {
+      window.location.replace('/pages/login.html');
+    }
+  </script>
+  <style>
+    :root {
+      --ig-black: #262626;
+      --ig-gray-dark: #8e8e8e;
+      --ig-gray-light: #dbdbdb;
+      --ig-border: #dbdbdb;
+      --ig-bg: #fafafa;
+      --ig-blue: #0095f6;
+      --ig-blue-hover: #1877f2;
+      --ig-red: #ed4956;
+      --bottomnav-h: 50px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--ig-bg);
+      color: var(--ig-black);
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: var(--bottomnav-h);
+    }
+    button { font-family: inherit; }
+    a { text-decoration: none; color: inherit; }
+    .hidden { display: none !important; }
+
+    /* ============ APP LAYOUT ============ */
+    .app-layout { display: block; }
+    .app-main { min-width: 0; }
+
+    /* ============ DESKTOP LEFT SIDEBAR ============ */
+    .desktop-sidebar { display: none; flex-direction: column; background: #fff; }
+    .sidebar-logo {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 28px;
+      padding: 14px 12px 26px;
+    }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .sidebar-nav-item {
+      display: flex; align-items: center; gap: 16px;
+      padding: 12px 12px; border-radius: 8px; font-size: 16px;
+      color: var(--ig-black); cursor: pointer; position: relative;
+    }
+    .sidebar-nav-item:hover { background: var(--ig-bg); }
+    .sidebar-nav-item.active { font-weight: 700; }
+    .sidebar-icon { font-size: 22px; width: 24px; text-align: center; flex-shrink: 0; }
+    .sidebar-icon.notif-dot::after {
+      content: ""; position: absolute; top: 8px; left: 30px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--ig-red); border: 1.5px solid #fff;
+    }
+    .sidebar-avatar-icon {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--ig-gray-light) center/cover no-repeat; flex-shrink: 0;
+    }
+    .sidebar-more { margin-top: auto; }
+
+    /* ============ MOBILE TOP BAR ============ */
+    .mobile-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; background: #fff; border-bottom: 1px solid var(--ig-border);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .mobile-topbar-logo {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-style: italic; font-size: 22px;
+    }
+    .mobile-topbar-icons { display: flex; align-items: center; gap: 18px; font-size: 21px; }
+
+    /* ============ FEED SHELL ============ */
+    .feed-shell { max-width: 470px; margin: 0 auto; padding: 12px 0 24px; }
+
+    /* ============ STORIES ROW ============ */
+    .stories-card {
+      background: #fff;
+      border: 1px solid var(--ig-border);
+      border-radius: 8px;
+      margin: 0 12px 16px;
+      padding: 14px 12px;
+    }
+    .stories-row { display: flex; gap: 14px; overflow-x: auto; scrollbar-width: none; }
+    .stories-row::-webkit-scrollbar { display: none; }
+    .story-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; cursor: pointer; width: 64px; }
+    .story-ring {
+      width: 56px; height: 56px; border-radius: 50%; padding: 2.5px;
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    }
+    .story-ring.seen { background: var(--ig-gray-light); }
+    .story-avatar {
+      width: 100%; height: 100%; border-radius: 50%;
+      background: #eee center/cover no-repeat; border: 2px solid #fff;
+    }
+    .story-item span {
+      font-size: 11px; color: var(--ig-black); max-width: 64px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* ============ FEED POST CARD ============ */
+    .feed-post {
+      background: #fff;
+      border: 1px solid var(--ig-border);
+      border-radius: 8px;
+      margin: 0 12px 16px;
+      overflow: hidden;
+    }
+    .feed-post-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px;
+    }
+    .feed-post-user { display: flex; align-items: center; gap: 10px; }
+    .feed-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #eee center/cover no-repeat;
+      border: 1.5px solid var(--ig-border);
+    }
+    .feed-post-user strong { font-size: 13px; font-weight: 600; display: block; }
+    .feed-post-user .feed-location { font-size: 11px; color: var(--ig-gray-dark); }
+    .feed-post-header .icon-button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--ig-black); }
+
+    .feed-post-media { position: relative; width: 100%; aspect-ratio: 1 / 1; background: #111; }
+    .feed-post-media img, .feed-post-media video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .carousel-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,0.85); border: none; cursor: pointer;
+      font-size: 16px; display: flex; align-items: center; justify-content: center;
+      color: var(--ig-black);
+    }
+    .carousel-arrow.prev { left: 10px; }
+    .carousel-arrow.next { right: 10px; }
+    .carousel-dots {
+      position: absolute; bottom: 10px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 4px;
+    }
+    .carousel-dots .dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.6); }
+    .carousel-dots .dot.active { background: var(--ig-blue); }
+
+    .feed-post-actions {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px 4px;
+    }
+    .feed-actions-left { display: flex; gap: 14px; }
+    .icon-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--ig-black); padding: 0; line-height: 1; }
+    .icon-btn.liked { color: var(--ig-red); }
+
+    .feed-post-likes { padding: 4px 14px 0; font-size: 13px; }
+    .feed-post-likes .avatars { display: inline-flex; margin-right: 4px; vertical-align: middle; }
+    .feed-post-likes .avatars span {
+      width: 16px; height: 16px; border-radius: 50%; background: #ddd center/cover no-repeat;
+      border: 1px solid #fff; margin-left: -6px; display: inline-block;
+    }
+    .feed-post-likes .avatars span:first-child { margin-left: 0; }
+
+    .feed-post-caption { padding: 6px 14px 0; font-size: 13px; line-height: 1.4; }
+    .feed-post-caption .more { color: var(--ig-gray-dark); cursor: pointer; }
+    .feed-post-comments-link { padding: 6px 14px 0; font-size: 13px; color: var(--ig-gray-dark); cursor: pointer; }
+    .feed-post-timestamp { padding: 4px 14px 10px; font-size: 10px; letter-spacing: 0.3px; color: var(--ig-gray-dark); text-transform: uppercase; }
+
+    .feed-post-add-comment {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-top: 1px solid #f0f0f0;
+    }
+    .feed-post-add-comment input {
+      flex: 1; border: none; outline: none; font-size: 13px; background: transparent;
+    }
+    .feed-post-add-comment .post-btn {
+      background: none; border: none; color: var(--ig-blue); font-weight: 600; font-size: 13px; cursor: pointer;
+    }
+    .feed-post-add-comment .post-btn:disabled { color: var(--ig-gray-light); cursor: default; }
+
+    .feed-empty { text-align: center; padding: 60px 20px; color: var(--ig-gray-dark); }
+
+    /* ============ MOBILE BOTTOM NAV ============ */
+    .mobile-bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: var(--bottomnav-h);
+      background: #fff; border-top: 1px solid var(--ig-border);
+      display: flex; align-items: center; justify-content: space-around;
+      z-index: 50; font-size: 22px;
+    }
+    .mobile-bottom-nav a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: var(--ig-black); }
+    .mobile-bottom-nav a.active { font-weight: 700; }
+    .mobile-bottom-nav .nav-profile-dot {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--ig-gray-light) center/cover no-repeat; border: 1.5px solid var(--ig-black);
+    }
+
+    /* ==================================================================
+       DESKTOP LAYOUT (>= 768px)
+       ================================================================== */
+    @media (min-width: 768px) {
+      body { padding-bottom: 0; }
+      .mobile-topbar, .mobile-bottom-nav { display: none; }
+
+      .app-layout { display: flex; align-items: flex-start; }
+      .desktop-sidebar {
+        display: flex; width: 245px; flex-shrink: 0; height: 100vh;
+        position: sticky; top: 0; border-right: 1px solid var(--ig-border);
+        padding: 8px 12px 16px;
+      }
+      .app-main { flex: 1; display: flex; justify-content: center; }
+
+      /* No right suggestions column — feed stays centered in the remaining space */
+      .feed-shell { max-width: 470px; padding: 24px 0 60px; }
+
+      .stories-card { margin: 0 0 24px; padding: 16px; }
+      .feed-post { margin: 0 0 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-layout">
+
+    <!-- ============ DESKTOP LEFT SIDEBAR ============ -->
+    <aside class="desktop-sidebar">
+      <div class="sidebar-logo">MiniSocial</div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-nav-item active" href="/pages/home.html"><span class="sidebar-icon">⌂</span> Home</a>
+        <a class="sidebar-nav-item" href="/pages/search.html"><span class="sidebar-icon">⌕</span> Search</a>
+        <a class="sidebar-nav-item" href="/pages/profile.html"><span class="sidebar-avatar-icon" id="sidebar-avatar"></span> Profile</a>
+        <button class="sidebar-nav-item sidebar-more" type="button" onclick="confirmDeleteAccount()"><span class="sidebar-icon">↪</span> Logout</button>
+      </nav>
+    </aside>
+
+    <div class="app-main">
+
+      <!-- ============ MOBILE TOP BAR ============ -->
+      <header class="mobile-topbar">
+        <span class="mobile-topbar-logo">MiniSocial</span>
+        <div class="mobile-topbar-icons">
+          <span title="Notifications">♡</span>
+          <span title="Messages">✉</span>
+        </div>
+      </header>
+
+      <main class="feed-shell">
+
+        <!-- ============ STORIES ROW ============ -->
+        <section class="stories-card">
+          <div class="stories-row" id="stories-row"></div>
+        </section>
+
+        <!-- ============ FEED POSTS ============ -->
+        <section id="feed-container">
+          <div id="loading" class="feed-empty">Loading your feed...</div>
+        </section>
+
+      </main>
+
+      <!-- ============ MOBILE BOTTOM NAV ============ -->
+      <nav class="mobile-bottom-nav">
+        <a href="#" class="active" title="Home">⌂</a>
+        <a href="#" onclick="chooseMedia('post')" title="Create">⊕</a>
+        <a href="/reels.html" title="Reels">▶</a>
+        <a href="/profile.html" title="Profile"><span class="nav-profile-dot" id="bottomnav-avatar"></span></a>
+      </nav>
+
+    </div>
+  </div>
+
+  <script type="application/disabled">
+    /* ==========================================================
+       DEMO DATA — replace with a real fetch to your backend
+       (e.g. via api.js: const stories = await api.getStories();
+       const posts = await api.getFeed();)
+       ========================================================== */
+    const demoStories = [
+      { username: 'jonathan_t', seen: false },
+      { username: 'johnnyolth', seen: false },
+      { username: 'calvarymag', seen: false, isMe: false },
+      { username: 'theoriginal', seen: false },
+      { username: 'thejakeman', seen: false },
+      { username: 'calvarycla', seen: true },
+    ];
+
+    const demoPosts = [
+      {
+        id: 'p1',
+        username: 'calvarymagazine',
+        location: '',
+        media: ['https://picsum.photos/seed/p1a/700/700', 'https://picsum.photos/seed/p1b/700/700'],
+        likedBy: ['calvarymv'],
+        likeCount: 214,
+        caption: 'AS IRON SHARPENS IRON ~ SOCAL MEN\u2019S CONFERENCE. Eight thousand men attended the free event...',
+        commentCount: 7,
+        timestamp: '3 DAYS AGO',
+        liked: false,
+      },
+      {
+        id: 'p2',
+        username: 'jonathan_talley_',
+        location: 'San Francisco, California',
+        media: ['https://picsum.photos/seed/p2a/700/700'],
+        likedBy: ['sam.dev'],
+        likeCount: 58,
+        caption: 'Golden Gate mornings hit different.',
+        commentCount: 3,
+        timestamp: '1 DAY AGO',
+        liked: false,
+      },
+    ];
+
+    function renderStories(stories) {
+      const row = document.getElementById('stories-row');
+      row.innerHTML = stories.map(s => `
+        <div class="story-item" onclick="openStory('${s.username}')">
+          <div class="story-ring ${s.seen ? 'seen' : ''}">
+            <div class="story-avatar"></div>
+          </div>
+          <span>${s.username}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderFeed(posts) {
+      const container = document.getElementById('feed-posts');
+      if (!posts.length) {
+        container.innerHTML = `<div class="feed-empty">No posts yet. Follow people to see their posts here.</div>`;
+        return;
+      }
+      container.innerHTML = posts.map(post => renderPostCard(post)).join('');
+    }
+
+    function renderPostCard(post) {
+      const hasCarousel = post.media.length > 1;
+      const dots = hasCarousel
+        ? `<div class="carousel-dots">${post.media.map((_, i) => `<span class="dot ${i === 0 ? 'active' : ''}"></span>`).join('')}</div>`
+        : '';
+      const arrows = hasCarousel
+        ? `<button class="carousel-arrow prev" onclick="shiftCarousel('${post.id}', -1)">\u2039</button>
+           <button class="carousel-arrow next" onclick="shiftCarousel('${post.id}', 1)">\u203a</button>`
+        : '';
+      const likedByText = post.likedBy.length
+        ? `Liked by <strong>${post.likedBy[0]}</strong>${post.likeCount > 1 ? ' and others' : ''}`
+        : `${post.likeCount} likes`;
+
+      return `
+        <article class="feed-post" id="post-${post.id}">
+          <header class="feed-post-header">
+            <div class="feed-post-user">
+              <div class="feed-avatar"></div>
+              <div>
+                <strong>${post.username}</strong>
+                ${post.location ? `<span class="feed-location">${post.location}</span>` : ''}
+              </div>
+            </div>
+            <button class="icon-button" title="More options">\u2022\u2022\u2022</button>
+          </header>
+
+          <div class="feed-post-media" id="media-${post.id}" data-index="0">
+            <img src="${post.media[0]}" alt="Post image">
+            ${arrows}
+            ${dots}
+          </div>
+
+          <div class="feed-post-actions">
+            <div class="feed-actions-left">
+              <button class="icon-btn like-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">${post.liked ? '\u2665' : '\u2661'}</button>
+              <button class="icon-btn" onclick="focusComment('${post.id}')">\u2003\uD83D\uDCAC</button>
+              <button class="icon-btn" title="Share">\u27A4</button>
+            </div>
+            <button class="icon-btn save-btn" title="Save">\uD83D\uDD16</button>
+          </div>
+
+          <div class="feed-post-likes" id="likes-${post.id}">${likedByText}</div>
+
+          <div class="feed-post-caption">
+            <strong>${post.username}</strong> ${post.caption} <span class="more">more</span>
+          </div>
+
+          <div class="feed-post-comments-link">View all ${post.commentCount} comments</div>
+          <div class="feed-post-timestamp">${post.timestamp}</div>
+
+          <div class="feed-post-add-comment">
+            <span>\uD83D\uDE42</span>
+            <input type="text" id="comment-input-${post.id}" placeholder="Add a comment..." oninput="toggleCommentBtn('${post.id}')">
+            <button class="post-btn" id="post-btn-${post.id}" disabled onclick="submitComment('${post.id}')">Post</button>
+          </div>
+        </article>
+      `;
+    }
+
+    /* ==========================================================
+       Basic interactions — wire these to interactions.js / api.js
+       ========================================================== */
+    function toggleLike(postId) {
+      const post = demoPosts.find(p => p.id === postId);
+      if (!post) return;
+      post.liked = !post.liked;
+      post.likeCount += post.liked ? 1 : -1;
+      const btn = document.querySelector(`#post-${postId} .like-btn`);
+      btn.classList.toggle('liked', post.liked);
+      btn.textContent = post.liked ? '\u2665' : '\u2661';
+      // TODO: call interactions.js like/unlike endpoint here
+    }
+
+    function shiftCarousel(postId, dir) {
+      const post = demoPosts.find(p => p.id === postId);
+      const mediaEl = document.getElementById(`media-${postId}`);
+      let index = parseInt(mediaEl.dataset.index, 10);
+      index = (index + dir + post.media.length) % post.media.length;
+      mediaEl.dataset.index = index;
+      mediaEl.querySelector('img').src = post.media[index];
+      mediaEl.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === index));
+    }
+
+    function toggleCommentBtn(postId) {
+      const input = document.getElementById(`comment-input-${postId}`);
+      const btn = document.getElementById(`post-btn-${postId}`);
+      btn.disabled = input.value.trim().length === 0;
+    }
+
+    function focusComment(postId) {
+      document.getElementById(`comment-input-${postId}`)?.focus();
+    }
+
+    function submitComment(postId) {
+      const input = document.getElementById(`comment-input-${postId}`);
+      const text = input.value.trim();
+      if (!text) return;
+      // TODO: call api.js to save the comment, then update commentCount
+      input.value = '';
+      toggleCommentBtn(postId);
+    }
+
+    function openStory(username) {
+      // TODO: open story viewe
+      console.log('open story for', username);
+    }
+
+    // Initial render — swap demoStories/demoPosts for real API data
+    renderStories(demoStories);
+    renderFeed(demoPosts);
+  </script>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/feed.js"></script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - MiniSocial</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if (!localStorage.getItem('token') || !JSON.parse(localStorage.getItem('user') || '{}')._id) {
+      window.location.replace('/pages/login.html');
+    }
+  </script>
+  <style>
+    :root {
+      --ig-black: #262626;
+      --ig-gray-dark: #8e8e8e;
+      --ig-gray-light: #dbdbdb;
+      --ig-border: #dbdbdb;
+      --ig-bg: #fafafa;
+      --ig-blue: #0095f6;
+      --ig-blue-hover: #1877f2;
+      --ig-red: #ed4956;
+      --topbar-h: 54px;
+      --bottomnav-h: 50px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--ig-bg);
+      color: var(--ig-black);
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: var(--bottomnav-h);
+    }
+    button { font-family: inherit; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ============ APP LAYOUT (sidebar + content) ============ */
+    .app-layout { display: block; }
+    .app-main { min-width: 0; }
+
+    /* ============ DESKTOP LEFT SIDEBAR (hidden on mobile) ============ */
+    .desktop-sidebar {
+      display: none;
+      flex-direction: column;
+      background: #fff;
+    }
+    .sidebar-logo {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 28px;
+      padding: 14px 12px 26px;
+    }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      color: var(--ig-black);
+      cursor: pointer;
+      position: relative;
+    }
+    .sidebar-nav-item:hover { background: var(--ig-bg); }
+    .sidebar-nav-item.active { font-weight: 700; }
+    .sidebar-icon { font-size: 22px; width: 24px; text-align: center; flex-shrink: 0; }
+    .sidebar-icon.notif-dot::after {
+      content: "";
+      position: absolute;
+      top: 8px; left: 30px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--ig-red);
+      border: 1.5px solid #fff;
+    }
+    .sidebar-avatar-icon {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--ig-gray-light) center/cover no-repeat;
+      flex-shrink: 0;
+    }
+    .sidebar-more { margin-top: auto; }
+
+    /* ============ MOBILE TOP BAR ============ */
+    .mobile-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #fff;
+      border-bottom: 1px solid var(--ig-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .mobile-topbar-left { display: flex; align-items: center; gap: 5px; font-weight: 600; font-size: 16px; }
+    .mobile-topbar-left .lock-ic { font-size: 12px; color: var(--ig-gray-dark); }
+    .mobile-topbar-icons { display: flex; align-items: center; gap: 18px; font-size: 20px; }
+    .mobile-topbar-icons .badge-dot { position: relative; }
+    .mobile-topbar-icons .badge-dot::after {
+      content: "2";
+      position: absolute;
+      top: -4px; right: -6px;
+      background: var(--ig-red);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ============ SHELL ============ */
+    .profile-shell { max-width: 935px; margin: 0 auto; }
+
+    /* ============ PROFILE HEADER ============ */
+    .profile-panel { background: #fff; padding: 18px 16px 10px; }
+    .profile-identity { display: flex; align-items: center; gap: 22px; }
+    .avatar-wrap { position: relative; flex-shrink: 0; }
+    .profile-avatar {
+      width: 74px; height: 74px; border-radius: 50%; padding: 3px;
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      position: relative;
+    }
+    .profile-avatar::after {
+      content: "";
+      position: absolute; inset: 3px; border-radius: 50%;
+      background: #eee center/cover no-repeat;
+      border: 2px solid #fff;
+    }
+    .avatar-add-story {
+      position: absolute; bottom: 0; right: 0;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--ig-blue); color: #fff; border: 2px solid #fff;
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .profile-stats-row {
+      display: flex; flex: 1; justify-content: space-around;
+      text-align: center; font-size: 14px;
+    }
+    .profile-stats-row strong { display: block; font-size: 17px; font-weight: 600; }
+    .profile-stats-row span { display: block; color: var(--ig-black); }
+    .profile-stat-button { background: none; border: 0; color: inherit; cursor: pointer; font: inherit; padding: 0; }
+    .profile-stat-button:hover strong, .profile-stat-button:focus strong { color: var(--ig-blue); }
+
+    .profile-handle-block { padding: 12px 0 2px; }
+    .profile-handle-block .profile-name { display: block; font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+    .profile-handle-block #profile-bio { font-size: 14px; line-height: 1.4; margin: 2px 0 0; color: var(--ig-black); }
+    #profile-username { font-size: 14px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 6px; }
+
+    .profile-actions { display: flex; gap: 8px; margin: 12px 0 14px; }
+    .btn {
+      font-size: 13px; font-weight: 600; padding: 7px 10px; border-radius: 8px;
+      border: none; cursor: pointer; transition: background 0.15s ease; flex: 1;
+    }
+    .btn-primary { background: var(--ig-blue); color: #fff; }
+    .btn-primary:hover { background: var(--ig-blue-hover); }
+    .btn-secondary { background: #efefef; color: var(--ig-black); }
+    .btn-secondary:hover { background: #dbdbdb; }
+    .btn-icon-only { flex: 0 0 auto; padding: 7px 12px; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; flex: none; }
+
+    /* ============ STORY HIGHLIGHTS ============ */
+    .highlights-row {
+      display: flex; gap: 18px; overflow-x: auto; padding: 4px 16px 16px;
+      scrollbar-width: none;
+    }
+    .highlights-row::-webkit-scrollbar { display: none; }
+    .highlight-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; cursor: pointer; }
+    .highlight-circle {
+      width: 62px; height: 62px; border-radius: 50%;
+      background: #f0f0f0 center/cover no-repeat;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--ig-gray-dark); font-size: 22px; font-weight: 300;
+    }
+    .highlight-item.new .highlight-circle { border: 1.5px dashed var(--ig-gray-light); }
+    .highlight-item span { font-size: 12px; color: var(--ig-black); max-width: 66px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ============ EDIT PROFILE PANEL ============ */
+    .edit-panel { background: #fff; border-top: 8px solid var(--ig-bg); padding: 20px 16px; }
+    .edit-panel h2 { font-size: 17px; margin: 4px 0 18px; }
+    .edit-panel label { display: block; font-size: 12px; font-weight: 600; color: var(--ig-gray-dark); margin: 14px 0 6px; }
+    .form-control {
+      width: 100%; padding: 9px 12px; font-size: 14px;
+      border: 1px solid var(--ig-gray-light); border-radius: 6px; background: var(--ig-bg); font-family: inherit;
+    }
+    .form-control:focus { outline: none; border-color: #a8a8a8; background: #fff; }
+    textarea.form-control { resize: vertical; min-height: 70px; }
+    .edit-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .alert { font-size: 13px; padding: 10px 12px; border-radius: 6px; margin-top: 10px; }
+    .alert-danger { background: #fdecea; color: var(--ig-red); border: 1px solid #f5c2c7; }
+
+    /* ============ CREATE POST PANEL ============ */
+    .profile-create { background: #fff; border-top: 8px solid var(--ig-bg); padding: 20px 16px; }
+    .profile-create h2 { font-size: 17px; margin: 4px 0 4px; }
+    .profile-create p { font-size: 13px; color: var(--ig-gray-dark); margin: 0 0 16px; }
+    .create-actions { display: flex; gap: 10px; margin-bottom: 14px; }
+    .upload-preview { margin: 12px 0; border-radius: 6px; overflow: hidden; max-width: 320px; border: 1px solid var(--ig-border); }
+    .upload-preview img, .upload-preview video { width: 100%; display: block; }
+    .upload-options { display: flex; gap: 20px; font-size: 13px; color: var(--ig-gray-dark); margin: 14px 0; flex-wrap: wrap; }
+    .upload-options label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .upload-status { font-size: 13px; color: var(--ig-gray-dark); margin-top: 10px; }
+    .profile-create-panel { display: none; background: #fff; border-top: 8px solid var(--ig-bg); padding: 18px 16px; }
+    .profile-create-panel.visible { display: block; }
+    .profile-create-panel h2 { font-size: 17px; margin: 0 0 12px; }
+    .profile-create-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .profile-create-actions .btn { flex: none; }
+    .profile-create-panel .form-control { margin-top: 10px; }
+    .modal-engagement { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 12px 0; border-top: 1px solid var(--ig-border); border-bottom: 1px solid var(--ig-border); }
+    .modal-engagement button { border: 0; background: none; cursor: pointer; font: inherit; color: var(--ig-black); padding: 0; }
+    .modal-engagement button:hover { color: var(--ig-blue); }
+    .modal-comments { padding-top: 10px; }
+    .modal-comment { margin: 8px 0; font-size: 13px; }
+    .modal-comment small { display: block; color: var(--ig-gray-dark); margin-top: 2px; }
+    .modal-comment-form { display: flex; gap: 8px; margin-top: 12px; }
+    .modal-comment-form input { flex: 1; min-width: 0; border: 1px solid var(--ig-border); border-radius: 6px; padding: 8px; }
+    .liked-by-list { margin: 8px 0; color: var(--ig-gray-dark); font-size: 12px; }
+
+    /* ============ ACTIVITY / NOTIFICATIONS ============ */
+    .activity-panel { background: #fff; border-top: 8px solid var(--ig-bg); padding: 18px 16px; }
+    .activity-heading { display: flex; justify-content: space-between; align-items: center; }
+    .activity-heading h2 { font-size: 17px; margin: 4px 0 0; }
+    .notifications-list { margin-top: 14px; }
+    .muted-text { color: var(--ig-gray-dark); font-size: 13px; }
+    .notification-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .notification-item:last-child { border-bottom: none; }
+
+    /* ============ TABS ============ */
+    .profile-tabs { display: flex; justify-content: center; border-top: 1px solid var(--ig-border); background: #fff; }
+    .profile-tab {
+      flex: 1; max-width: 140px; padding: 12px 0; background: none; border: none;
+      border-top: 1px solid transparent; margin-top: -1px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase;
+      color: var(--ig-gray-dark); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .profile-tab .tab-icon { font-size: 20px; }
+    .profile-tab .tab-label { display: none; }
+    .profile-tab.active { color: var(--ig-black); border-top: 1px solid var(--ig-black); }
+
+    /* ============ GRID ============ */
+    .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; background: #fff; }
+    .profile-grid-item { position: relative; aspect-ratio: 1 / 1; background: #1a1a1a; overflow: hidden; cursor: pointer; }
+    .profile-grid-item img, .profile-grid-item video { width: 100%; height: 100%; object-fit: cover; }
+    .profile-grid-item::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background 0.15s ease; }
+    .profile-grid-item:hover::after { background: rgba(0,0,0,0.15); }
+    .grid-badge { position: absolute; top: 8px; right: 8px; color: #fff; font-size: 15px; text-shadow: 0 1px 3px rgba(0,0,0,0.6); z-index: 2; }
+    .empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--ig-gray-dark); }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.6; }
+
+    /* ============ MOBILE BOTTOM NAV ============ */
+    .mobile-bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: var(--bottomnav-h);
+      background: #fff; border-top: 1px solid var(--ig-border);
+      display: flex; align-items: center; justify-content: space-around;
+      z-index: 50; font-size: 22px;
+    }
+    .mobile-bottom-nav a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: var(--ig-black); }
+    .mobile-bottom-nav a.active { font-weight: 700; }
+    .mobile-bottom-nav .nav-profile-dot {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--ig-gray-light) center/cover no-repeat;
+      border: 1.5px solid var(--ig-black);
+    }
+
+    /* ============ POST MODAL ============ */
+    .post-modal { position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center; }
+    .post-modal.hidden { display: none; }
+    .post-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.75); }
+    .post-modal-card { position: relative; background: #fff; border-radius: 8px; max-width: 900px; width: 92%; max-height: 86vh; overflow-y: auto; z-index: 1; }
+    .modal-close { position: absolute; top: 10px; right: 14px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ig-black); z-index: 2; }
+    .hidden { display: none !important; }
+    .followers-modal-card { max-width: 430px; }
+    .followers-modal-heading { border-bottom: 1px solid var(--ig-border); padding: 16px 20px; text-align: center; font-size: 16px; }
+    .followers-list { padding: 8px 20px 18px; max-height: 55vh; overflow-y: auto; }
+    .follower-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+    .follower-item:last-child { border-bottom: 0; }
+    .follower-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #f09433, #cc2366); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+    .follower-copy { min-width: 0; }
+    .follower-copy strong, .follower-copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .follower-copy span { color: var(--ig-gray-dark); font-size: 12px; }
+
+    /* ==================================================================
+       DESKTOP LAYOUT (>= 768px) — matches instagram.com desktop profile
+       ================================================================== */
+    @media (min-width: 768px) {
+      body { padding-bottom: 0; }
+      .mobile-topbar, .mobile-bottom-nav { display: none; }
+
+      .app-layout { display: flex; align-items: flex-start; }
+      .desktop-sidebar {
+        display: flex;
+        width: 245px;
+        flex-shrink: 0;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        border-right: 1px solid var(--ig-border);
+        padding: 8px 12px 16px;
+      }
+      .app-main { flex: 1; }
+
+      .profile-shell { padding: 30px 20px 60px; }
+
+      .profile-panel { border: 1px solid var(--ig-border); border-radius: 8px; padding: 28px 32px; margin-bottom: 24px; }
+      .profile-identity { align-items: flex-start; gap: 40px; }
+      .profile-avatar { width: 150px; height: 150px; padding: 4px; }
+      .profile-avatar::after { border: 3px solid #fff; }
+      .avatar-add-story { width: 32px; height: 32px; font-size: 18px; }
+
+      .profile-stats-row {
+        justify-content: flex-start; gap: 40px; font-size: 15px;
+        padding-top: 20px; margin-top: 16px; border-top: 1px solid var(--ig-border);
+      }
+      .profile-stats-row strong { display: inline; font-size: 15px; }
+      .profile-stats-row span { display: inline; }
+
+      #profile-username { font-size: 22px; font-weight: 300; }
+      .profile-handle-block { padding: 6px 0 0; max-width: 400px; }
+
+      .profile-actions { margin: 14px 0 0; }
+      .btn { flex: none; padding: 7px 16px; font-size: 14px; }
+
+      .highlights-row { padding: 20px 0 0; gap: 24px; }
+      .highlight-circle { width: 77px; height: 77px; }
+
+      .edit-panel, .profile-create, .activity-panel {
+        border: 1px solid var(--ig-border); border-radius: 8px; margin-bottom: 24px; padding: 24px 32px;
+      }
+      .profile-create-panel { border: 1px solid var(--ig-border); border-radius: 8px; margin-bottom: 24px; padding: 24px 32px; }
+
+      .profile-content { background: #fff; border: 1px solid var(--ig-border); border-radius: 8px; overflow: hidden; }
+      .profile-tab { padding: 16px 0; gap: 8px; }
+      .profile-tab .tab-icon { font-size: 14px; }
+      .profile-tab .tab-label { display: inline; }
+
+      .profile-grid { gap: 28px; padding: 28px; }
+      .profile-grid-item { border-radius: 2px; }
+    }
+
+    @media (min-width: 768px) and (max-width: 900px) {
+      .profile-grid { gap: 14px; padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-layout">
+
+    <!-- ============ DESKTOP LEFT SIDEBAR ============ -->
+    <aside class="desktop-sidebar">
+      <div class="sidebar-logo">MiniSocial</div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-nav-item" href="/pages/home.html"><span class="sidebar-icon">⌂</span> Home</a>
+        <a class="sidebar-nav-item" href="/pages/search.html"><span class="sidebar-icon">⌕</span> Search</a>
+        <a class="sidebar-nav-item active" href="#"><span class="sidebar-avatar-icon" id="sidebar-avatar"></span> Profile</a>
+        <button class="sidebar-nav-item sidebar-more" type="button" onclick="confirmDeleteAccount()"><span class="sidebar-icon">↪</span> Logout</button>
+      </nav>
+    </aside>
+
+    <div class="app-main">
+
+      <!-- ============ MOBILE TOP BAR ============ -->
+      <header class="mobile-topbar">
+        <div class="mobile-topbar-left">
+          <span>MiniSocial</span> <span class="lock-ic">🔒</span>
+        </div>
+        <div class="mobile-topbar-icons">
+          <span class="badge-dot">🧵</span>
+          <span onclick="chooseMedia('post')">⊕</span>
+          <span onclick="toggleEditProfile()">☰</span>
+        </div>
+      </header>
+
+      <main class="profile-shell">
+
+    <!-- ============ PROFILE HEADER ============ -->
+    <section class="profile-panel">
+      <div class="profile-identity">
+        <div class="avatar-wrap">
+          <div class="profile-avatar" id="profile-avatar"></div>
+        </div>
+        <div class="profile-stats-row">
+          <div><strong id="stat-posts-profile">0</strong><span>Posts</span></div>
+          <button class="profile-stat-button" id="followers-stat-button" onclick="openFollowersModal()"><strong id="stat-followers-profile">0</strong><span>Followers</span></button>
+          <div><strong id="stat-following-profile">0</strong><span>Following</span></div>
+        </div>
+      </div>
+
+      <div class="profile-handle-block">
+        <h1 id="profile-username"></h1>
+        <strong id="profile-name" class="profile-name"></strong>
+        <p id="profile-bio">Loading profile...</p>
+      </div>
+
+      <div class="profile-actions">
+        <button class="btn btn-secondary" id="edit-profile-btn" onclick="toggleEditProfile()">Edit profile</button>
+        <button class="btn btn-primary btn-sm hidden" id="follow-btn" onclick="toggleFollow()">Follow</button>
+        <button class="btn btn-secondary" id="share-profile-btn" onclick="shareProfile()">Share profile</button>
+        <button class="btn btn-secondary btn-icon-only" onclick="toggleEditProfile()" title="Settings">⚙</button>
+      </div>
+    </section>
+
+    <section id="profile-create-panel" class="profile-create-panel">
+      <h2>Create a post or reel</h2>
+      <div class="profile-create-actions">
+        <button class="btn btn-secondary" type="button" onclick="chooseMedia('post')">Choose photo</button>
+        <button class="btn btn-secondary" type="button" onclick="chooseMedia('video')">Choose reel</button>
+      </div>
+      <textarea id="profile-post-caption" class="form-control" placeholder="Write a caption..." maxlength="2000"></textarea>
+      <div id="upload-preview" class="upload-preview hidden"></div>
+      <button id="upload-media-btn" class="btn btn-primary upload-media-btn hidden" onclick="publishProfileMedia()">Share</button>
+      <p id="upload-status" class="upload-status"></p>
+    </section>
+
+    
+
+    <!-- ============ EDIT PROFILE FORM ============ -->
+    <section id="edit-profile-form" class="edit-panel hidden">
+      <h2>Edit profile</h2>
+      <label for="edit-name">Name</label>
+      <input id="edit-name" class="form-control" maxlength="60" placeholder="Your name">
+      <label for="edit-username">Username</label>
+      <input id="edit-username" class="form-control" minlength="3" maxlength="30" pattern="[A-Za-z0-9_.]+" required placeholder="username">
+      <p id="profile-edit-error" class="alert alert-danger hidden"></p>
+      <label for="edit-bio">Bio</label>
+      <textarea id="edit-bio" class="form-control" maxlength="160" placeholder="Tell your story..."></textarea>
+      <div class="edit-actions">
+        <button class="btn btn-primary" onclick="updateProfile()">Save changes</button>
+        <button class="btn btn-secondary" onclick="toggleEditProfile()">Cancel</button>
+      </div>
+    </section>
+
+    <!-- Hidden utility inputs still needed by profile.js for uploads triggered from the "+" icons -->
+    <input id="post-media-input" type="file" accept="image/*" hidden onchange="prepareProfileMedia('post', this)">
+    <input id="reel-media-input" type="file" accept="video/*" hidden onchange="prepareProfileMedia('video', this)">
+    <div class="hidden">
+      <input type="checkbox" id="comments-enabled" checked>
+      <input type="checkbox" id="share-enabled" checked>
+    </div>
+    <div id="notifications-list" class="hidden">
+      <p class="muted-text">Your likes, comments and new followers will appear here.</p>
+    </div>
+
+    <!-- ============ TABS + GRID ============ -->
+    <section class="profile-content">
+      <div class="profile-tabs">
+        <button class="profile-tab active" data-tab="posts" onclick="switchProfileTab('posts')">
+          <span class="tab-icon">▦</span><span class="tab-label">Posts</span>
+        </button>
+        <button class="profile-tab" data-tab="reels" onclick="switchProfileTab('reels')">
+          <span class="tab-icon">▶</span><span class="tab-label">Reels</span>
+        </button>
+        <button class="profile-tab" data-tab="saved" onclick="switchProfileTab('saved')">
+          <span class="tab-icon">⌑</span><span class="tab-label">Saved</span>
+        </button>
+      </div>
+      <div id="user-posts" class="profile-grid"></div>
+    </section>
+
+      </main>
+
+      <!-- ============ MOBILE BOTTOM NAV ============ -->
+      <nav class="mobile-bottom-nav">
+        <a href="/index.html" title="Home">⌂</a>
+        <a href="#" onclick="chooseMedia('post')" title="Create">⊕</a>
+        <a href="/reels.html" title="Reels">▶</a>
+        <a href="#" class="active" title="Profile"><span class="nav-profile-dot" id="bottomnav-avatar"></span></a>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- ============ POST MODAL ============ -->
+  <div id="post-modal" class="post-modal hidden" role="dialog" aria-modal="true">
+    <div class="post-modal-backdrop" onclick="closePostModal()"></div>
+    <article class="post-modal-card">
+      <button class="modal-close" onclick="closePostModal()" aria-label="Close">×</button>
+      <div id="post-modal-content"></div>
+    </article>
+  </div>
+
+  <div id="followers-modal" class="post-modal hidden" role="dialog" aria-modal="true" aria-labelledby="followers-modal-title">
+    <div class="post-modal-backdrop" onclick="closeFollowersModal()"></div>
+    <article class="post-modal-card followers-modal-card">
+      <button class="modal-close" onclick="closeFollowersModal()" aria-label="Close">×</button>
+      <h2 id="followers-modal-title" class="followers-modal-heading">Followers</h2>
+      <div id="followers-list" class="followers-list"><p class="muted-text">Loading followers...</p></div>
+    </article>
+  </div>
+
+  <script>
+    // Simple share helper — safe fallback if profile.js doesn't define one
+    function shareProfile() {
+      const url = window.location.href;
+      if (navigator.share) {
+        navigator.share({ title: 'My MiniSocial profile', url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url).then(() => {
+          const status = document.getElementById('upload-status');
+          if (status) { status.textContent = 'Profile link copied!'; setTimeout(() => status.textContent = '', 2000); }
+        });
+      }
+    }
+  </script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/interactions.js"></script>
+  <script src="/js/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# This is a comment (Git ignores lines starting with #)
+
+# Ignore a specific file
+secret_config.json
+
+# Ignore a whole directory (always use a trailing slash)
+node_modules/
+dist/
+
+# Ignore all files matching an extension (using wildcards)
+*.log
+*.env
+
+# Exception: Ignore all logs, BUT track "important.log"
+!important.log
