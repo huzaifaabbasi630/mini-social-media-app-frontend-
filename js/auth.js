@@ -71,6 +71,7 @@ async function handleLogin(e) {
     setUser(result.data.user);
     window.location.href = '/pages/profile.html';
   } catch (error) {
+    console.error('Login error:', error);
     if (errorEl) errorEl.textContent = error.message;
   } finally {
     btn.disabled = false;
@@ -95,6 +96,7 @@ async function handleRegister(e) {
     clearAuth();
     window.location.href = '/pages/login.html?registered=1';
   } catch (error) {
+    console.error('Signup error:', error);
     if (errorEl) errorEl.textContent = error.message;
   } finally {
     btn.disabled = false;

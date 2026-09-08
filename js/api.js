@@ -1,4 +1,4 @@
-const API_BASE = 'https://mini-social-media-app-backend-h1dhdvcqp.vercel.app/api';
+const API_BASE = 'https://mini-social-media-app-backend-peach.vercel.app/api';
 
 function getToken() {
   return localStorage.getItem('token');
